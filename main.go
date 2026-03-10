@@ -3,12 +3,15 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 )
 
 type Answer struct {
-	Response string
+	Response    string
 	Explanation string
 }
 
@@ -58,27 +61,53 @@ func (g *Game) ProccessCSV() {
 	for index, record := range records {
 		if index > 0 {
 			anwser := Answer{
-				Response: record[5],
+				Response:    record[5],
 				Explanation: record[6],
 			}
 			question := Question{
-				Text: record[0],
+				Text:    record[0],
 				Options: record[1:5],
-				Answer: anwser,
+				Answer:  anwser,
 			}
-			
+
 			g.Questions = append(g.Questions, question)
 		}
 	}
 }
 
-func (g *Game) Run(){
+func (g *Game) Run() {
 	// exibir pergunta ao usuário
 	for index, question := range g.Questions {
 		fmt.Printf("\033[33m %d. %s \033[0m\n", index+1, question.Text)
 
 		for in, option := range question.Options {
 			fmt.Printf("[%s] %s \n", numberToLetter(in+1), option)
+		}
+
+		var answer string
+		var err error
+
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			read, _ := reader.ReadString('\n')
+			read = strings.TrimSpace(read)
+
+			answer, err = validateString(read)
+
+			if err != nil {
+				fmt.Println("Entrada invalida", err.Error())
+				continue
+			}
+			break
+		}
+
+		if strings.EqualFold(answer, question.Answer.Response) {
+			fmt.Printf("Parábens!! Voce acertou. \n")
+			fmt.Printf("Resposta: %s, %s \n", question.Answer.Response, question.Answer.Explanation)
+			g.Points += 10
+		} else {
+			fmt.Println("Ops! Voce errou.")
+			fmt.Println("_____________________________")
 		}
 
 	}
@@ -89,9 +118,18 @@ func main() {
 	go game.ProccessCSV()
 	game.Init()
 	game.Run()
-}
 
+	fmt.Printf("Fim de jogo, Voce fez %d pontos", game.Points)
+}
 
 func numberToLetter(n int) string {
 	return string(rune('a' + n - 1))
+}
+
+func validateString(s string) (string, error) {
+	reg := regexp.MustCompile(`^[a-dA-D]$`)
+	if !reg.MatchString(s) {
+		return "", errors.New("ERROR: Somente caracteres permitidos")
+	}
+	return s, nil
 }
