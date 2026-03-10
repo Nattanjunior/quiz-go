@@ -5,13 +5,17 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
-	"strconv"
 )
+
+type Answer struct {
+	Response string
+	Explanation string
+}
 
 type Question struct {
 	Text    string
 	Options []string
-	Answer  int
+	Answer  Answer
 }
 
 type Game struct {
@@ -54,12 +58,16 @@ func (g *Game) ProccessCSV() {
 	for index, record := range records {
 		fmt.Println(record)
 		if index > 0 {
+			anwser := Answer{
+				Response: record[5],
+				Explanation: record[6],
+			}
 			question := Question{
 				Text: record[0],
 				Options: record[1:5],
-				Answer: toInt(record[6]),
+				Answer: anwser,
 			}
-
+			
 			g.Questions = append(g.Questions, question)
 
 		}
@@ -74,11 +82,3 @@ func main() {
 	fmt.Println(game.Questions)
 }
 
-func toInt(s string) int {
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		panic(err)
-	}
-	return i
-
-}
