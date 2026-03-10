@@ -56,7 +56,6 @@ func (g *Game) ProccessCSV() {
 	}
 
 	for index, record := range records {
-		fmt.Println(record)
 		if index > 0 {
 			anwser := Answer{
 				Response: record[5],
@@ -69,8 +68,19 @@ func (g *Game) ProccessCSV() {
 			}
 			
 			g.Questions = append(g.Questions, question)
-
 		}
+	}
+}
+
+func (g *Game) Run(){
+	// exibir pergunta ao usuário
+	for index, question := range g.Questions {
+		fmt.Printf("\033[33m %d. %s \033[0m\n", index+1, question.Text)
+
+		for in, option := range question.Options {
+			fmt.Printf("[%s] %s \n", numberToLetter(in+1), option)
+		}
+
 	}
 }
 
@@ -78,7 +88,10 @@ func main() {
 	game := &Game{}
 	go game.ProccessCSV()
 	game.Init()
-
-	fmt.Println(game.Questions)
+	game.Run()
 }
 
+
+func numberToLetter(n int) string {
+	return string(rune('a' + n - 1))
+}
